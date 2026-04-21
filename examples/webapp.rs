@@ -12,6 +12,7 @@ fn run() {
         game: MinesweeperGame,
         presets: &'static [(&'static str, usize, usize, usize)],
         selected_preset: usize,
+        dark_mode: bool,
     }
 
     impl Default for MinesweeperApp {
@@ -24,6 +25,7 @@ fn run() {
                     ("Expert (30×16, 99 mines)", 30, 16, 99),
                 ],
                 selected_preset: 0,
+                dark_mode: false,
             }
         }
     }
@@ -52,6 +54,7 @@ fn run() {
                 let remaining = (self.game.mines as isize) - (flags as isize);
                 ui.horizontal(|ui| {
                     ui.label(format!("Flags: {flags}  |  Mines remaining: {remaining}"));
+                    ui.checkbox(&mut self.dark_mode, "Dark mode");
                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         if ui.button("New Game").clicked() {
                             self.game.reset();
@@ -80,7 +83,14 @@ fn run() {
                 ui.add_space(4.0);
 
                 egui::ScrollArea::both().show(ui, |ui| {
-                    ui.add(MinesweeperWidget::new(&mut self.game).cell_size(34.0));
+                    ui.scope(|ui| {
+                        ui.style_mut().visuals = if self.dark_mode {
+                            egui::Visuals::dark()
+                        } else {
+                            egui::Visuals::light()
+                        };
+                        ui.add(MinesweeperWidget::new(&mut self.game).cell_size(34.0));
+                    });
                 });
             });
         }
