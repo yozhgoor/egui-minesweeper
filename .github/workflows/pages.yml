@@ -26,8 +26,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-      - name: Install wasm-bindgen-cli
-        run: cargo install wasm-bindgen-cli --locked
       - name: Build dist
         run: cargo run --example webapp -- dist --release
       - uses: actions/upload-pages-artifact@v3
