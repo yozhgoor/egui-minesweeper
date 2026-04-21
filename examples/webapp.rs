@@ -13,6 +13,7 @@ fn run() {
         presets: &'static [(&'static str, usize, usize, usize)],
         selected_preset: usize,
         dark_mode: bool,
+        theme_initialized: bool,
     }
 
     impl Default for MinesweeperApp {
@@ -26,12 +27,33 @@ fn run() {
                 ],
                 selected_preset: 0,
                 dark_mode: false,
+                theme_initialized: false,
             }
         }
     }
 
     impl eframe::App for MinesweeperApp {
         fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+            if !self.theme_initialized {
+                // Use system/browser preference when available; fallback to dark.
+                self.dark_mode = {
+                    web_sys::window()
+                        .and_then(|w| w.match_media("(prefers-color-scheme: dark)").ok().flatten())
+                        .map(|m| m.matches())
+                        .unwrap_or(true)
+                };
+                self.theme_initialized = true;
+            }
+            ui.ctx().set_visuals(if self.dark_mode {
+                egui::Visuals::dark()
+            } else {
+                egui::Visuals::light()
+            });
+
+            let bg = ui.max_rect();
+            ui.painter()
+                .rect_filled(bg, egui::CornerRadius::ZERO, ui.visuals().panel_fill);
+
             ui.vertical_centered(|ui| {
                 ui.heading("Minesweeper");
                 ui.add_space(4.0);
@@ -83,14 +105,7 @@ fn run() {
                 ui.add_space(4.0);
 
                 egui::ScrollArea::both().show(ui, |ui| {
-                    ui.scope(|ui| {
-                        ui.style_mut().visuals = if self.dark_mode {
-                            egui::Visuals::dark()
-                        } else {
-                            egui::Visuals::light()
-                        };
-                        ui.add(MinesweeperWidget::new(&mut self.game).cell_size(34.0));
-                    });
+                    ui.add(MinesweeperWidget::new(&mut self.game).cell_size(34.0));
                 });
             });
         }
