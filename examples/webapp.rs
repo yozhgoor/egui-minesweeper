@@ -8,9 +8,12 @@ fn run() {
     use egui_minesweeper::{
         CellState, GameStatus, InteractionMode, MinesweeperGame, MinesweeperWidget,
     };
+    use serde::{Deserialize, Serialize};
     use xtask_wasm::wasm_bindgen::JsCast as _;
 
-    #[derive(Clone, Copy, PartialEq)]
+    const SELECTED_PRESET_KEY: &str = "selected_preset";
+
+    #[derive(Clone, Copy, Deserialize, PartialEq, Serialize)]
     enum Preset {
         Beginner,
         Intermediate,
@@ -58,23 +61,6 @@ fn run() {
         show_menu: bool,
         share_state: ShareState,
         capture_board_rect: Option<egui::Rect>,
-    }
-
-    impl Default for MinesweeperApp {
-        fn default() -> Self {
-            Self {
-                game: MinesweeperGame::new(9, 9, 10),
-                selected_preset: Preset::Beginner,
-                question_marks: true,
-                show_labels: false,
-                selected_cell: None,
-                scene_rect: None,
-                prev_status: GameStatus::Playing,
-                show_menu: false,
-                share_state: ShareState::Idle,
-                capture_board_rect: None,
-            }
-        }
     }
 
     impl eframe::App for MinesweeperApp {
@@ -141,6 +127,10 @@ fn run() {
             }
 
             self.prev_status = self.game.status;
+        }
+
+        fn save(&mut self, storage: &mut dyn eframe::Storage) {
+            eframe::set_value(storage, SELECTED_PRESET_KEY, &self.selected_preset);
         }
     }
 
@@ -286,6 +276,27 @@ fn run() {
             web_sys::Url::revoke_object_url(&url)
                 .map_err(|_| "couldn't revoke object URL".to_string())?;
             Ok(())
+        }
+
+        fn new(cc: &eframe::CreationContext<'_>) -> Self {
+            let selected_preset = cc
+                .storage
+                .and_then(|storage| eframe::get_value(storage, SELECTED_PRESET_KEY))
+                .unwrap_or(Preset::Beginner);
+            let (w, h, m) = selected_preset.dims();
+
+            Self {
+                game: MinesweeperGame::new(w, h, m),
+                selected_preset,
+                question_marks: true,
+                show_labels: false,
+                selected_cell: None,
+                scene_rect: None,
+                prev_status: GameStatus::Playing,
+                show_menu: false,
+                share_state: ShareState::Idle,
+                capture_board_rect: None,
+            }
         }
 
         fn is_mobile(ui: &egui::Ui) -> bool {
@@ -720,7 +731,7 @@ fn run() {
             .start(
                 canvas,
                 eframe::WebOptions::default(),
-                Box::new(|_cc| Ok(Box::new(MinesweeperApp::default()))),
+                Box::new(|cc| Ok(Box::new(MinesweeperApp::new(cc)))),
             )
             .await
             .expect("failed to start eframe");
