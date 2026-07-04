@@ -12,7 +12,6 @@ fn run() {
     use xtask_wasm::wasm_bindgen::JsCast as _;
 
     const SELECTED_PRESET_KEY: &str = "selected_preset";
-    const THEME_PREFERENCE_KEY: &str = "theme_preference";
 
     #[derive(Clone, Copy, Deserialize, PartialEq, Serialize)]
     enum Preset {
@@ -54,7 +53,6 @@ fn run() {
     struct MinesweeperApp {
         game: MinesweeperGame,
         selected_preset: Preset,
-        theme_preference: egui::ThemePreference,
         question_marks: bool,
         show_labels: bool,
         selected_cell: Option<(usize, usize)>,
@@ -133,13 +131,6 @@ fn run() {
 
         fn save(&mut self, storage: &mut dyn eframe::Storage) {
             eframe::set_value(storage, SELECTED_PRESET_KEY, &self.selected_preset);
-            eframe::set_value(storage, THEME_PREFERENCE_KEY, &self.theme_preference);
-        }
-
-        // We persist exactly the state we care about ourselves in `save`/`new`, so we don't
-        // need egui's own memory persistence.
-        fn persist_egui_memory(&self) -> bool {
-            false
         }
     }
 
@@ -292,18 +283,11 @@ fn run() {
                 .storage
                 .and_then(|storage| eframe::get_value(storage, SELECTED_PRESET_KEY))
                 .unwrap_or(Preset::Beginner);
-            let theme_preference = cc
-                .storage
-                .and_then(|storage| eframe::get_value(storage, THEME_PREFERENCE_KEY))
-                .unwrap_or(egui::ThemePreference::System);
             let (w, h, m) = selected_preset.dims();
-
-            cc.egui_ctx.set_theme(theme_preference);
 
             Self {
                 game: MinesweeperGame::new(w, h, m),
                 selected_preset,
-                theme_preference,
                 question_marks: true,
                 show_labels: false,
                 selected_cell: None,
@@ -506,22 +490,6 @@ fn run() {
             }
         }
 
-        fn show_theme_toggle(&mut self, ui: &mut egui::Ui) {
-            let (icon, tooltip, next) = if ui.ctx().theme() == egui::Theme::Dark {
-                ("☀", "Switch to light mode", egui::ThemePreference::Light)
-            } else {
-                ("🌙", "Switch to dark mode", egui::ThemePreference::Dark)
-            };
-            if ui
-                .add(egui::Button::new(icon).frame(false))
-                .on_hover_text(tooltip)
-                .clicked()
-            {
-                self.theme_preference = next;
-                ui.ctx().set_theme(self.theme_preference);
-            }
-        }
-
         fn show_hamburger_menu(&mut self, ui: &mut egui::Ui) {
             if ui
                 .add(
@@ -593,22 +561,23 @@ fn run() {
                     }
                     ui.separator();
                     ui.label(egui::RichText::new("Theme").size(menu_font_size));
+                    let mut tp = ui.options(|o| o.theme_preference);
                     ui.selectable_value(
-                        &mut self.theme_preference,
+                        &mut tp,
                         egui::ThemePreference::System,
                         egui::RichText::new("💻 System").size(menu_font_size),
                     );
                     ui.selectable_value(
-                        &mut self.theme_preference,
+                        &mut tp,
                         egui::ThemePreference::Light,
                         egui::RichText::new("☀ Light").size(menu_font_size),
                     );
                     ui.selectable_value(
-                        &mut self.theme_preference,
+                        &mut tp,
                         egui::ThemePreference::Dark,
                         egui::RichText::new("🌙 Dark").size(menu_font_size),
                     );
-                    ui.ctx().set_theme(self.theme_preference);
+                    ui.ctx().set_theme(tp);
                 });
 
             if response.should_close() {
@@ -626,7 +595,7 @@ fn run() {
                         ui.horizontal_wrapped(|ui| {
                             ui.visuals_mut().button_frame = false;
                             ui.add_space(8.0);
-                            self.show_theme_toggle(ui);
+                            egui::widgets::global_theme_preference_switch(ui);
                             ui.toggle_value(&mut self.question_marks, "❓");
                             ui.toggle_value(&mut self.show_labels, "123");
                             ui.separator();

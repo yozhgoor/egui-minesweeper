@@ -13,8 +13,10 @@ Versioning](semver).
 - File download fallback for screenshot sharing via blob URL and hidden `<a>` click.
 - `download_blob` helper for downloading screenshots when Web Share is unavailable.
 - Persist theme preference and difficulty preset across sessions via eframe storage.
-  - Implements `eframe::App::save()` to persist `ThemePreference` and `Preset`.
-  - Loads persisted values from storage in `MinesweeperApp::new()`.
+  - Theme preference persists automatically through eframe/egui's built-in memory
+    persistence (`persist_egui_memory` left at its default).
+  - Implements `eframe::App::save()` to persist `Preset` via `eframe::set_value`, loaded
+    back in `MinesweeperApp::new()`.
   - Enables eframe `persistence` feature and adds `serde` dependency.
 
 ## [0.1.5] - 2026-06-26
