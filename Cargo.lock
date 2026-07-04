@@ -864,6 +864,8 @@ dependencies = [
  "eframe",
  "egui",
  "fastrand",
+ "image",
+ "js-sys",
  "serde",
  "wasm-bindgen-futures",
  "web-sys",

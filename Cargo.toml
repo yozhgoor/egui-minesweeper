@@ -34,4 +34,20 @@ eframe = { version = "0.34", default-features = false, features = [
 ] }
 serde = { version = "1", features = ["derive"] }
 wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["HtmlCanvasElement"] }
+js-sys = "0.3"
+image = { version = "0.25", default-features = false, features = ["png"] }
+web-sys = { version = "0.3", features = [
+    "Blob",
+    "BlobPropertyBag",
+    "Document",
+    "Element",
+    "File",
+    "FilePropertyBag",
+    "HtmlCanvasElement",
+    "HtmlElement",
+    "Navigator",
+    "Node",
+    "ShareData",
+    "Url",
+    "Window",
+] }
