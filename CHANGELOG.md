@@ -7,6 +7,8 @@ Versioning](semver).
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-07-04
+
 ### Added
 
 - Game status emoji (🎉 green / 💥 red) and share button inline in the mobile action bar when game ends.
@@ -18,6 +20,12 @@ Versioning](semver).
   - Implements `eframe::App::save()` to persist `Preset` via `eframe::set_value`, loaded
     back in `MinesweeperApp::new()`.
   - Enables eframe `persistence` feature and adds `serde` dependency.
+
+### Fixed
+
+- Board mine placement is now properly randomized on the web (wasm32) build — `fastrand` was
+  missing the `js` feature needed to seed from `crypto.getRandomValues()`, so games were
+  previously seeded deterministically.
 
 ## [0.1.5] - 2026-06-26
 
@@ -93,7 +101,8 @@ Versioning](semver).
 
 [keep_a_changelog]: https://keepachangelog.com/en/1.1.0
 [semver]: https://semver.org/spec/v2.0.0.html
-[Unreleased]: https://github.com/cecton/egui-minesweeper/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/cecton/egui-minesweeper/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/cecton/egui-minesweeper/releases/tag/v0.1.6
 [0.1.5]: https://github.com/cecton/egui-minesweeper/releases/tag/v0.1.5
 [0.1.4]: https://github.com/cecton/egui-minesweeper/releases/tag/v0.1.4
 [0.1.3]: https://github.com/cecton/egui-minesweeper/releases/tag/v0.1.3
